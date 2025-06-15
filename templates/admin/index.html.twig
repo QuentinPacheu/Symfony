@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration - Dashboard{% endblock %}
+
+{% block body %}
+    <!-- En-tête moderne -->
+    <div class="jumbotron-modern">
+        <div class="content">
+            <h1 class="display-4 mb-4">
+                <i class="fas fa-shield-alt me-3"></i>
+                Tableau de bord Administration
+            </h1>
+            <p class="lead mb-4">Gérez votre application Points Shop</p>
+            <p class="h5 mb-0">Bienvenue <strong>{{ controller_name }}</strong> ! ✅</p>
+        </div>
+    </div>
+
+    <!-- Cards de navigation rapide -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <h3 class="text-info">Utilisateurs</h3>
+                <p class="mb-3">Gérer les comptes utilisateurs</p>
+                <a href="{{ path('app_admin_users') }}" class="btn btn-modern btn-sm">
+                    <i class="fas fa-users me-1"></i>Accéder
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <h3 class="text-warning">Produits</h3>
+                <p class="mb-3">Gérer le catalogue produits</p>
+                <a href="{{ path('app_admin_product_index') }}" class="btn btn-accent btn-sm">
+                    <i class="fas fa-box me-1"></i>Accéder
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">➕</div>
+                <h3 class="text-success">Nouveau</h3>
+                <p class="mb-3">Créer un nouveau produit</p>
+                <a href="{{ path('app_admin_product_new') }}" class="btn btn-success-modern btn-sm">
+                    <i class="fas fa-plus me-1"></i>Créer
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">🏠</div>
+                <h3 class="text-primary">Accueil</h3>
+                <p class="mb-3">Retour à l'accueil</p>
+                <a href="{{ path('app_home') }}" class="btn btn-warning-modern btn-sm">
+                    <i class="fas fa-home me-1"></i>Accueil
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section informations techniques -->
+    <div class="nav-section">
+        <h3><i class="fas fa-code me-2"></i>Informations techniques</h3>
+        <div class="modern-card">
+            <h5 class="text-white mb-4">
+                <i class="fas fa-info-circle me-2"></i>Détails de l'application
+            </h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-accent mb-3">
+                        <i class="fas fa-server me-2"></i>Contrôleur
+                    </h6>
+                    <div class="bg-dark p-3 rounded mb-3">
+                        <code class="text-success">
+                            /Users/thomasdoret-gaisset/PROJECTS/eval_iim_symfony/src/Controller/AdminController.php
+                        </code>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-accent mb-3">
+                        <i class="fas fa-file-code me-2"></i>Template
+                    </h6>
+                    <div class="bg-dark p-3 rounded mb-3">
+                        <code class="text-success">
+                            /Users/thomasdoret-gaisset/PROJECTS/eval_iim_symfony/templates/admin/index.html.twig
+                        </code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-modern mt-4">
+                <h6 class="alert-heading">
+                    <i class="fas fa-lightbulb me-2"></i>Message système
+                </h6>
+                <p class="mb-0">
+                    Ce message provient de votre contrôleur AdminController et s'affiche via le template stylisé avec le design moderne Points Shop.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides admin -->
+    <div class="nav-section">
+        <h3><i class="fas fa-bolt me-2"></i>Actions rapides</h3>
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-3">
+                <div class="nav-card" onclick="addPointsToUsers()">
+                    <div class="nav-icon"><i class="fas fa-coins"></i></div>
+                    <div class="nav-title">Ajouter 1000 points</div>
+                    <div class="nav-description">Distribuer des points à tous les utilisateurs actifs</div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="{{ path('app_admin_users') }}" class="nav-card">
+                    <div class="nav-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="nav-title">Modérer les comptes</div>
+                    <div class="nav-description">Activer/désactiver les comptes utilisateurs</div>
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-3">
+                <a href="{{ path('app_admin_product_index') }}" class="nav-card">
+                    <div class="nav-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="nav-title">Statistiques produits</div>
+                    <div class="nav-description">Voir les performances des produits</div>
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function addPointsToUsers() {
+            if (confirm('Êtes-vous sûr de vouloir ajouter 1000 points à tous les utilisateurs actifs ?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ path('app_admin_add_points') }}';
+                
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '_token';
+                tokenInput.value = '{{ csrf_token('add_points') }}';
+                
+                form.appendChild(tokenInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,345 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes notifications{% endblock %}
+
+{% block body %}
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="text-white">
+                <i class="fas fa-bell me-2" style="color: var(--accent-color);"></i>
+                Mes notifications
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('app_home') }}" class="text-decoration-none" style="color: var(--accent-color);">
+                            <i class="fas fa-home me-1"></i>Accueil
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('app_profile') }}" class="text-decoration-none" style="color: var(--accent-color);">
+                            <i class="fas fa-user me-1"></i>Mon profil
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active text-light-custom">Notifications</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ path('app_profile') }}" class="btn btn-warning-modern">
+                <i class="fas fa-arrow-left me-2"></i>Retour au profil
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats notifications -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <h3 class="text-info">{{ notifications|length }}</h3>
+                <p>Total notifications</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">🛒</div>
+                {% set achat_count = 0 %}
+                {% for notification in notifications %}
+                    {% if notification.label starts with 'ACHAT' %}
+                        {% set achat_count = achat_count + 1 %}
+                    {% endif %}
+                {% endfor %}
+                <h3 class="text-success">{{ achat_count }}</h3>
+                <p>Achats effectués</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                {% set important_count = 0 %}
+                {% for notification in notifications %}
+                    {% if notification.label starts with 'Votre compte a été désactivé' %}
+                        {% set important_count = important_count + 1 %}
+                    {% endif %}
+                {% endfor %}
+                <h3 class="text-warning">{{ important_count }}</h3>
+                <p>Notifications importantes</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <h3 class="text-primary">
+                    {% if notifications|length > 0 %}
+                        {{ notifications|first.createdAt ? notifications|first.createdAt|date('d/m') : 'N/A' }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </h3>
+                <p>Dernière notification</p>
+            </div>
+        </div>
+    </div>
+
+    {% if notifications|length > 0 %}
+        <!-- Filtres -->
+        <div class="modern-card mb-4">
+            <h5 class="text-white mb-3">
+                <i class="fas fa-filter me-2"></i>Filtrer les notifications
+            </h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-modern btn-sm filter-btn active" data-filter="all">
+                    <i class="fas fa-list me-1"></i>Toutes ({{ notifications|length }})
+                </button>
+                <button class="btn btn-success-modern btn-sm filter-btn" data-filter="achat">
+                    <i class="fas fa-shopping-cart me-1"></i>Achats ({{ achat_count }})
+                </button>
+                <button class="btn btn-warning-modern btn-sm filter-btn" data-filter="important">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Importantes ({{ important_count }})
+                </button>
+                <button class="btn btn-accent btn-sm filter-btn" data-filter="creation">
+                    <i class="fas fa-plus me-1"></i>Créations
+                </button>
+                <button class="btn btn-danger-modern btn-sm filter-btn" data-filter="suppression">
+                    <i class="fas fa-trash me-1"></i>Suppressions
+                </button>
+            </div>
+        </div>
+
+        <!-- Liste des notifications -->
+        <div class="modern-card">
+            <h5 class="text-white mb-4">
+                <i class="fas fa-history me-2"></i>Historique complet
+            </h5>
+            
+            <div class="table-responsive">
+                <table class="table table-modern mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">
+                                <i class="fas fa-calendar me-1"></i>Date
+                            </th>
+                            <th style="width: 60%;">
+                                <i class="fas fa-comment me-1"></i>Notification
+                            </th>
+                            <th style="width: 20%;">
+                                <i class="fas fa-tag me-1"></i>Type
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="notifications-tbody">
+                        {% for notification in notifications|reverse %}
+                            <tr class="notification-row" 
+                                data-type="{% if notification.label starts with 'ACHAT' %}achat{% elseif notification.label starts with 'Votre compte a été désactivé' %}important{% elseif notification.label starts with 'CREATION' %}creation{% elseif notification.label starts with 'SUPPRESSION' %}suppression{% else %}other{% endif %}">
+                                <td class="text-nowrap">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-clock me-2 text-accent"></i>
+                                        <div>
+                                            <div class="text-light-custom">
+                                                {{ notification.createdAt ? notification.createdAt|date('d/m/Y') : 'Date inconnue' }}
+                                            </div>
+                                            <small class="text-muted">
+                                                {{ notification.createdAt ? notification.createdAt|date('H:i:s') : '' }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if notification.label starts with 'ACHAT' %}
+                                            <i class="fas fa-shopping-cart me-2 text-success"></i>
+                                        {% elseif notification.label starts with 'Votre compte a été désactivé' %}
+                                            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                                        {% elseif notification.label starts with 'CREATION' %}
+                                            <i class="fas fa-plus-circle me-2 text-info"></i>
+                                        {% elseif notification.label starts with 'MODIFICATION' %}
+                                            <i class="fas fa-edit me-2 text-primary"></i>
+                                        {% elseif notification.label starts with 'SUPPRESSION' %}
+                                            <i class="fas fa-trash me-2 text-danger"></i>
+                                        {% else %}
+                                            <i class="fas fa-info-circle me-2 text-light"></i>
+                                        {% endif %}
+                                        <span class="text-light-custom">{{ notification.label }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if notification.label starts with 'Votre compte a été désactivé' %}
+                                        <span class="badge bg-warning text-dark badge-animated">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Important
+                                        </span>
+                                    {% elseif notification.label starts with 'ACHAT' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-shopping-cart me-1"></i>Achat
+                                        </span>
+                                    {% elseif notification.label starts with 'CREATION' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-plus me-1"></i>Nouveau
+                                        </span>
+                                    {% elseif notification.label starts with 'MODIFICATION' %}
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-edit me-1"></i>Mise à jour
+                                        </span>
+                                    {% elseif notification.label starts with 'SUPPRESSION' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-trash me-1"></i>Suppression
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-info me-1"></i>Info
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Informations complémentaires -->
+        <div class="alert alert-modern mt-4">
+            <h6 class="alert-heading">
+                <i class="fas fa-info-circle me-2"></i>Informations sur les notifications
+            </h6>
+            <p class="mb-2">
+                <strong>Total :</strong> Vous avez {{ notifications|length }} notification{{ notifications|length > 1 ? 's' : '' }} au total.
+            </p>
+            <p class="mb-0">
+                <i class="fas fa-lightbulb me-1"></i>
+                <strong>Astuce :</strong> Utilisez les filtres ci-dessus pour trouver rapidement les notifications qui vous intéressent.
+            </p>
+        </div>
+
+    {% else %}
+        <!-- Aucune notification -->
+        <div class="modern-card text-center py-5">
+            <i class="fas fa-bell-slash" style="font-size: 5rem; color: var(--accent-color); margin-bottom: 2rem;"></i>
+            <h3 class="text-white mb-3">Aucune notification</h3>
+            <p class="text-light-custom mb-4">
+                Vous n'avez pas encore de notifications. Lorsque vous effectuerez des actions sur la plateforme, 
+                elles apparaîtront ici.
+            </p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ path('app_product_index') }}" class="btn btn-modern">
+                    <i class="fas fa-shopping-cart me-2"></i>Parcourir la boutique
+                </a>
+                <a href="{{ path('app_profile') }}" class="btn btn-accent">
+                    <i class="fas fa-user me-2"></i>Mon profil
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Actions rapides -->
+    <div class="modern-card mt-4">
+        <h5 class="text-white mb-4">
+            <i class="fas fa-bolt me-2"></i>Actions rapides
+        </h5>
+        
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <a href="{{ path('app_profile') }}" class="btn btn-accent w-100">
+                    <i class="fas fa-user me-2"></i>Mon profil
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{{ path('app_product_index') }}" class="btn btn-success-modern w-100">
+                    <i class="fas fa-shopping-cart me-2"></i>Boutique
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{{ path('app_home') }}" class="btn btn-warning-modern w-100">
+                    <i class="fas fa-home me-2"></i>Accueil
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{{ path('app_profile_edit') }}" class="btn btn-modern w-100">
+                    <i class="fas fa-edit me-2"></i>Modifier profil
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Système de filtrage des notifications
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const notificationRows = document.querySelectorAll('.notification-row');
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Mettre à jour les boutons actifs
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const filter = this.dataset.filter;
+
+                    // Filtrer les notifications
+                    notificationRows.forEach(row => {
+                        if (filter === 'all' || row.dataset.type === filter) {
+                            row.style.display = '';
+                            row.style.animation = 'fadeIn 0.3s ease';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    // Animation du bouton
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 100);
+                });
+            });
+
+            // Animation des lignes au hover
+            notificationRows.forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    this.style.background = 'rgba(255, 255, 255, 0.05)';
+                    this.style.transform = 'translateX(5px)';
+                });
+
+                row.addEventListener('mouseleave', function() {
+                    this.style.background = '';
+                    this.style.transform = 'translateX(0)';
+                });
+            });
+
+            // Animation d'entrée des notifications
+            notificationRows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    row.style.transition = 'all 0.4s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+
+            // Compter et afficher les notifications visibles
+            function updateVisibleCount() {
+                const visibleRows = Array.from(notificationRows).filter(row => row.style.display !== 'none');
+                const activeFilter = document.querySelector('.filter-btn.active');
+                if (activeFilter && visibleRows.length !== notificationRows.length) {
+                    console.log(`Affichage de ${visibleRows.length} notification(s)`);
+                }
+            }
+
+            // Animation des badges
+            const badges = document.querySelectorAll('.badge-animated');
+            badges.forEach(badge => {
+                setInterval(() => {
+                    badge.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        badge.style.transform = 'scale(1)';
+                    }, 200);
+                }, 4000);
+            });
+        });
+    </script>
+{% endblock %}

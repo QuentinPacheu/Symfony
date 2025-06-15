@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -48,6 +49,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?bool $actif = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $createdAt = null;
+
     /**
      * @var Collection<int, Notification>
      */
@@ -64,6 +68,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->notifications = new ArrayCollection();
         $this->products = new ArrayCollection();
+        $this->createdAt = new \DateTime(); // Initialise à la date actuelle
     }
 
     public function getId(): ?int
@@ -183,6 +188,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setActif(bool $actif): static
     {
         $this->actif = $actif;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }

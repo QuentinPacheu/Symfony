@@ -28,8 +28,15 @@ class RegistrationController extends AbstractController
             // encode the plain password
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
 
+            // Initialiser les valeurs par défaut pour les champs requis
+            $user->setPoints(0); // Points initial à 0
+            $user->setActif(true); // Utilisateur actif par défaut
+
             $entityManager->persist($user);
             $entityManager->flush();
+
+            // Ajouter un message de succès
+            $this->addFlash('success', 'Votre compte a été créé avec succès !');
 
             // do anything else you need here, like send an email
 

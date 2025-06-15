@@ -19,6 +19,14 @@ class Notification
     #[ORM\ManyToOne(inversedBy: 'notifications')]
     private ?User $User = null;
 
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTimeInterface $createdAt = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -44,6 +52,18 @@ class Notification
     public function setUser(?User $User): static
     {
         $this->User = $User;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?\DateTimeInterface $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }

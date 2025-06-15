@@ -1,0 +1,422 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catalogue des produits{% endblock %}
+
+{% block body %}
+    <!-- Header avec navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="text-white">
+                <i class="fas fa-store me-2" style="color: var(--accent-color);"></i>
+                Catalogue des produits
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('app_home') }}" class="text-decoration-none" style="color: var(--accent-color);">
+                            <i class="fas fa-home me-1"></i>Accueil
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active text-bright">Produits</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            {% if app.user %}
+                <div class="stat-card" style="min-width: 200px;">
+                    <div class="text-center">
+                        <h6 class="text-white mb-2">
+                            <i class="fas fa-wallet me-1"></i>Votre solde
+                        </h6>
+                        <h4 class="points-display mb-0">{{ app.user.points }} 💰</h4>
+                    </div>
+                </div>
+            {% endif %}
+            <a href="{{ path('app_home') }}" class="btn btn-warning-modern">
+                <i class="fas fa-home me-2"></i>Accueil
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <h3 class="text-info">{{ products|length }}</h3>
+                <p>Produits disponibles</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                {% if app.user %}
+                    <h3 class="points-display">{{ app.user.points }}</h3>
+                    <p>Vos points</p>
+                {% else %}
+                    <h3 class="text-warning">-</h3>
+                    <p>Connectez-vous</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">💸</div>
+                {% if products|length > 0 %}
+                    {% set min_price = null %}
+                    {% for product in products %}
+                        {% if min_price is null or product.price < min_price %}
+                            {% set min_price = product.price %}
+                        {% endif %}
+                    {% endfor %}
+                    <h3 class="text-success">{{ min_price }}</h3>
+                    <p>Prix minimum</p>
+                {% else %}
+                    <h3 class="text-muted">-</h3>
+                    <p>Aucun produit</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                {% if app.user and products|length > 0 %}
+                    {% set affordable_count = 0 %}
+                    {% for product in products %}
+                        {% if app.user.points >= product.price %}
+                            {% set affordable_count = affordable_count + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    <h3 class="text-primary">{{ affordable_count }}</h3>
+                    <p>Produits accessibles</p>
+                {% else %}
+                    <h3 class="text-muted">-</h3>
+                    <p>Non connecté</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if products|length > 0 %}
+        <!-- Catalogue des produits -->
+        <div class="modern-card">
+            <h5 class="text-white mb-4">
+                <i class="fas fa-th-large me-2"></i>Tous nos produits
+            </h5>
+            
+            <div class="row">
+                {% for product in products %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="product-card h-100">
+                            <div class="card-body d-flex flex-column">
+                                <!-- En-tête produit -->
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-box me-2" style="color: var(--accent-color);"></i>
+                                        {{ product.name }}
+                                    </h5>
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-tag me-1"></i>{{ product.category }}
+                                    </span>
+                                </div>
+
+                                <!-- Description -->
+                                <p class="card-text text-bright flex-grow-1">
+                                    {{ product.description|slice(0, 120) }}{% if product.description|length > 120 %}...{% endif %}
+                                </p>
+
+                                <!-- Prix et statut -->
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="product-price mb-0">{{ product.price }} 💰</h4>
+                                        {% if app.user %}
+                                            {% if app.user.actif %}
+                                                {% if app.user.points >= product.price %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check-circle me-1"></i>Accessible
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ product.price - app.user.points }} points manquants
+                                                    </span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-ban me-1"></i>Compte désactivé
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-sign-in-alt me-1"></i>Connexion requise
+                                            </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ path('app_product_show', {'id': product.id}) }}" class="btn btn-modern">
+                                            <i class="fas fa-eye me-2"></i>Voir les détails
+                                        </a>
+                                        
+                                        {% if app.user and app.user.actif and app.user.points >= product.price %}
+                                            <form method="post" action="{{ path('app_product_acheter', {'id': product.id}) }}" style="display: inline;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('acheter' ~ product.id) }}">
+                                                <button type="submit" class="btn btn-success-modern w-100" 
+                                                        onclick="return confirm('🛒 Achat rapide\n\nProduit : {{ product.name }}\nPrix : {{ product.price }} points\n\nConfirmer l\'achat ?')">
+                                                    <i class="fas fa-shopping-cart me-2"></i>Achat rapide
+                                                </button>
+                                            </form>
+                                        {% endif %}
+
+                                        <!-- Actions d'administration -->
+                                        {% if is_granted('ROLE_ADMIN') %}
+                                            <div class="border-top border-secondary pt-3 mt-3" data-admin>
+                                                <small class="text-muted d-block text-center mb-2">
+                                                    <i class="fas fa-shield-alt me-1"></i>Actions administrateur
+                                                </small>
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <a href="{{ path('app_admin_product_edit', {'id': product.id}) }}" class="btn btn-warning-modern btn-sm w-100">
+                                                            <i class="fas fa-edit me-1"></i>Modifier
+                                                        </a>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <form method="post" action="{{ path('app_admin_product_delete', {'id': product.id}) }}" 
+                                                              onsubmit="return confirm('⚠️ ATTENTION\n\nÊtes-vous sûr de vouloir supprimer « {{ product.name }} » ?\n\nCette action est irréversible !');">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
+                                                            <button type="submit" class="btn btn-danger-modern btn-sm w-100">
+                                                                <i class="fas fa-trash me-1"></i>Supprimer
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Informations supplémentaires -->
+                                <div class="mt-3 pt-3 border-top border-secondary">
+                                    <div class="row text-center">
+                                        {% if product.createBy %}
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user-plus me-1"></i>Par<br>
+                                                    <span class="text-bright">{{ product.createBy.firstname }}</span>
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                        {% if product.createdAt %}
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>Ajouté le<br>
+                                                    <span class="text-bright">{{ product.createdAt|date('d/m/Y') }}</span>
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Informations et conseils -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="alert alert-modern">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-lightbulb me-2"></i>Astuce d'achat
+                    </h6>
+                    <p class="mb-0">
+                        Cliquez sur "Voir les détails" pour obtenir plus d'informations sur un produit avant de l'acheter.
+                        L'"Achat rapide" est disponible pour les produits que vous pouvez vous permettre.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="alert alert-modern alert-info-modern">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>Information
+                    </h6>
+                    <p class="mb-0">
+                        <strong>{{ products|length }}</strong> produit{{ products|length > 1 ? 's' : '' }} disponible{{ products|length > 1 ? 's' : '' }} au total.
+                        {% if app.user %}
+                            Vous pouvez acheter <strong>{{ affordable_count ?? 0 }}</strong> produit{{ (affordable_count ?? 0) > 1 ? 's' : '' }} avec vos points actuels.
+                        {% else %}
+                            Connectez-vous pour voir quels produits vous pouvez acheter.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Aucun produit disponible -->
+        <div class="modern-card text-center py-5">
+            <i class="fas fa-store-slash" style="font-size: 5rem; color: var(--accent-color); margin-bottom: 2rem;"></i>
+            <h3 class="text-white mb-3">Aucun produit disponible</h3>
+            <p class="text-bright mb-4">
+                Notre catalogue est actuellement vide. Revenez bientôt pour découvrir nos nouveaux produits !
+            </p>
+            
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ path('app_home') }}" class="btn btn-modern">
+                    <i class="fas fa-home me-2"></i>Retour à l'accueil
+                </a>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('app_admin_product_new') }}" class="btn btn-accent">
+                        <i class="fas fa-plus me-2"></i>Ajouter le premier produit
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Actions rapides -->
+    <div class="modern-card mt-4">
+        <h5 class="text-white mb-4">
+            <i class="fas fa-bolt me-2"></i>Actions rapides
+        </h5>
+        
+        <div class="row">
+            <div class="col-md-2 mb-2">
+                <a href="{{ path('app_home') }}" class="btn btn-warning-modern w-100">
+                    <i class="fas fa-home me-2"></i>Accueil
+                </a>
+            </div>
+            {% if app.user %}
+                <div class="col-md-2 mb-2">
+                    <a href="{{ path('app_profile') }}" class="btn btn-accent w-100">
+                        <i class="fas fa-user me-2"></i>Mon profil
+                    </a>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <a href="{{ path('app_profile_notifications') }}" class="btn btn-success-modern w-100">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </a>
+                </div>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ path('app_admin_product_new') }}" class="btn btn-modern w-100">
+                            <i class="fas fa-plus me-2"></i>Nouveau produit
+                        </a>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ path('app_admin_product_index') }}" class="btn btn-accent w-100">
+                            <i class="fas fa-cogs me-2"></i>Gestion produits
+                        </a>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <a href="{{ path('app_admin_users') }}" class="btn btn-danger-modern w-100">
+                            <i class="fas fa-users me-2"></i>Utilisateurs
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="col-md-2 mb-2">
+                    <a href="{{ path('app_login') }}" class="btn btn-accent w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                    </a>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <a href="{{ path('app_register') }}" class="btn btn-success-modern w-100">
+                        <i class="fas fa-user-plus me-2"></i>Inscription
+                    </a>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <a href="{{ path('app_home') }}" class="btn btn-modern w-100">
+                        <i class="fas fa-info-circle me-2"></i>En savoir plus
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Animation des cartes produits
+        document.addEventListener('DOMContentLoaded', function() {
+            const productCards = document.querySelectorAll('.product-card');
+            
+            productCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animation des boutons d'achat rapide
+            const quickBuyButtons = document.querySelectorAll('button[onclick*="Achat rapide"]');
+            quickBuyButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.05)';
+                    this.style.boxShadow = '0 10px 25px rgba(0, 184, 148, 0.4)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.boxShadow = '';
+                });
+            });
+
+            // Animation des boutons de suppression
+            const deleteButtons = document.querySelectorAll('button[onclick*="ATTENTION"]');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Animation de la card
+                    const card = this.closest('.product-card');
+                    card.style.animation = 'pulse 0.5s ease-in-out';
+                    
+                    setTimeout(() => {
+                        if (confirm('⚠️ CONFIRMATION FINALE\n\nÊtes-vous VRAIMENT sûr de vouloir supprimer ce produit ?\n\nCette action supprimera définitivement le produit et ne pourra pas être annulée.')) {
+                            // Animation de suppression
+                            card.style.transition = 'all 0.5s ease';
+                            card.style.transform = 'scale(0.8)';
+                            card.style.opacity = '0.3';
+                            
+                            setTimeout(() => {
+                                this.form.submit();
+                            }, 300);
+                        } else {
+                            card.style.animation = '';
+                        }
+                    }, 100);
+                });
+            });
+
+            // Mise en évidence des sections admin
+            const adminSections = document.querySelectorAll('[data-admin]');
+            adminSections.forEach(section => {
+                section.style.borderLeft = '3px solid var(--warning-color)';
+                section.style.paddingLeft = '10px';
+            });
+
+            // Filtre visuel pour les produits non accessibles
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const warningBadge = card.querySelector('.badge.bg-warning');
+                const dangerBadge = card.querySelector('.badge.bg-danger');
+                
+                if (warningBadge || dangerBadge) {
+                    card.style.opacity = '0.7';
+                    card.addEventListener('mouseenter', function() {
+                        this.style.opacity = '1';
+                    });
+                    card.addEventListener('mouseleave', function() {
+                        this.style.opacity = '0.7';
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}

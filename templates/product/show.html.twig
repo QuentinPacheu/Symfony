@@ -1,0 +1,281 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name }} - Points Shop{% endblock %}
+
+{% block body %}
+    <!-- Navigation retour -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-transparent p-0">
+                <li class="breadcrumb-item">
+                    <a href="{{ path('app_home') }}" class="text-decoration-none" style="color: var(--accent-color);">
+                        <i class="fas fa-home me-1"></i>Accueil
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ path('app_product_index') }}" class="text-decoration-none" style="color: var(--accent-color);">
+                        <i class="fas fa-shopping-cart me-1"></i>Produits
+                    </a>
+                </li>
+                <li class="breadcrumb-item active text-light-custom">{{ product.name }}</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <!-- Détails du produit -->
+        <div class="col-lg-8">
+            <!-- En-tête produit -->
+            <div class="modern-card">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="text-white mb-3">
+                            <i class="fas fa-box me-2" style="color: var(--accent-color);"></i>
+                            {{ product.name }}
+                        </h1>
+                        <span class="badge bg-secondary fs-6">
+                            <i class="fas fa-tag me-1"></i>{{ product.category }}
+                        </span>
+                    </div>
+                    <div class="text-end">
+                        <h2 class="product-price mb-0">{{ product.price }} 💰</h2>
+                        <small class="text-muted">Prix en points</small>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <h5 class="text-white mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Description
+                    </h5>
+                    <div class="bg-dark bg-opacity-25 p-4 rounded">
+                        <p class="text-light-custom mb-0 fs-5 lh-lg">{{ product.description }}</p>
+                    </div>
+                </div>
+
+                <!-- Section d'achat -->
+                <div class="border-top border-secondary pt-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h3 class="product-price mb-2">
+                                <i class="fas fa-coins me-2"></i>Prix : {{ product.price }} 💰
+                            </h3>
+                            {% if app.user and app.user.points < product.price %}
+                                <small class="text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Il vous manque {{ product.price - app.user.points }} points
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 text-end">
+                            {% if app.user %}
+                                {% if app.user.actif %}
+                                    {% if app.user.points >= product.price %}
+                                        <form method="post" action="{{ path('app_product_acheter', {'id': product.id}) }}" style="display: inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('acheter' ~ product.id) }}">
+                                            <button type="submit" class="btn btn-success-modern btn-lg"
+                                                    onclick="return confirm('🛒 Confirmer l\'achat\n\nProduit : {{ product.name }}\nPrix : {{ product.price }} points\n\nConfirmer l\'achat ?')">
+                                                <i class="fas fa-shopping-cart me-2"></i>Acheter maintenant
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <button class="btn btn-danger-modern btn-lg" disabled>
+                                            <i class="fas fa-ban me-2"></i>Points insuffisants
+                                        </button>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-modern alert-warning-modern">
+                                        <h6 class="alert-heading">
+                                            <i class="fas fa-user-slash me-2"></i>Compte désactivé
+                                        </h6>
+                                        <p class="mb-0">Votre compte est désactivé. Vous ne pouvez pas effectuer d'achat.</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ path('app_login') }}" class="btn btn-modern btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Connectez-vous pour acheter
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bouton retour -->
+            <div class="mt-4">
+                <a href="{{ path('app_product_index') }}" class="btn btn-warning-modern">
+                    <i class="fas fa-arrow-left me-2"></i>Retour aux produits
+                </a>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            {% if app.user %}
+                <!-- Solde utilisateur -->
+                <div class="stat-card mb-4">
+                    <div class="text-center">
+                        <h5 class="text-white mb-3">
+                            <i class="fas fa-wallet me-2"></i>Votre solde
+                        </h5>
+                        <h2 class="points-display {{ app.user.points >= product.price ? 'text-success' : 'text-danger' }} mb-3">
+                            {{ app.user.points }} 💰
+                        </h2>
+                        
+                        {% if app.user.points >= product.price %}
+                            <div class="alert alert-modern alert-success-modern">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-check-circle me-2"></i>Achat possible !
+                                </h6>
+                                <p class="mb-2">Après achat, il vous restera :</p>
+                                <strong class="points-display">{{ app.user.points - product.price }} 💰</strong>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-modern alert-warning-modern">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Points insuffisants
+                                </h6>
+                                <p class="mb-0">Il vous manque <strong>{{ product.price - app.user.points }} points</strong> pour cet achat.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Informations produit -->
+            <div class="modern-card">
+                <h5 class="text-white mb-4">
+                    <i class="fas fa-info-circle me-2"></i>Informations produit
+                </h5>
+                
+                <div class="mb-3">
+                    <h6 class="text-accent">
+                        <i class="fas fa-tag me-2"></i>Catégorie
+                    </h6>
+                    <span class="badge bg-secondary fs-6">{{ product.category }}</span>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-accent">
+                        <i class="fas fa-coins me-2"></i>Prix
+                    </h6>
+                    <span class="product-price fs-5">{{ product.price }} 💰</span>
+                </div>
+
+                {% if product.createBy %}
+                    <div class="mb-3">
+                        <h6 class="text-accent">
+                            <i class="fas fa-user-plus me-2"></i>Ajouté par
+                        </h6>
+                        <p class="text-light-custom mb-0">
+                            <i class="fas fa-user-circle me-1"></i>
+                            {{ product.createBy.firstname }} {{ product.createBy.name }}
+                        </p>
+                    </div>
+                {% endif %}
+
+                {% if product.createdAt %}
+                    <div class="mb-3">
+                        <h6 class="text-accent">
+                            <i class="fas fa-calendar-plus me-2"></i>Date d'ajout
+                        </h6>
+                        <p class="text-light-custom mb-0">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ product.createdAt|date('d/m/Y') }}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="modern-card">
+                <h5 class="text-white mb-4">
+                    <i class="fas fa-bolt me-2"></i>Actions rapides
+                </h5>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ path('app_product_index') }}" class="btn btn-warning-modern">
+                        <i class="fas fa-shopping-cart me-2"></i>Voir d'autres produits
+                    </a>
+                    
+                    {% if app.user %}
+                        <a href="{{ path('app_profile') }}" class="btn btn-accent">
+                            <i class="fas fa-user me-2"></i>Mon profil
+                        </a>
+                        
+                        {% if app.user.notifications|length > 0 %}
+                            <a href="{{ path('app_profile_notifications') }}" class="btn btn-success-modern">
+                                <i class="fas fa-bell me-2"></i>
+                                Notifications ({{ app.user.notifications|length }})
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ path('app_register') }}" class="btn btn-accent">
+                            <i class="fas fa-user-plus me-2"></i>Créer un compte
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Aide -->
+            {% if not app.user or app.user.points < product.price %}
+                <div class="modern-card">
+                    <h5 class="text-white mb-4">
+                        <i class="fas fa-question-circle me-2"></i>Besoin d'aide ?
+                    </h5>
+                    
+                    {% if not app.user %}
+                        <p class="text-light-custom mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Créez un compte pour commencer à gagner des points et acheter des produits.
+                        </p>
+                        <a href="{{ path('app_register') }}" class="btn btn-modern">
+                            <i class="fas fa-user-plus me-2"></i>S'inscrire
+                        </a>
+                    {% elseif app.user.points < product.price %}
+                        <p class="text-light-custom mb-3">
+                            <i class="fas fa-coins me-2"></i>
+                            Vous avez besoin de plus de points ? Participez aux activités de la plateforme ou attendez les bonus !
+                        </p>
+                        <a href="{{ path('app_home') }}" class="btn btn-modern">
+                            <i class="fas fa-home me-2"></i>Retour à l'accueil
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Animation du bouton d'achat
+        document.addEventListener('DOMContentLoaded', function() {
+            const buyButton = document.querySelector('button[onclick*="Confirmer"]');
+            if (buyButton) {
+                buyButton.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.05)';
+                    this.style.boxShadow = '0 15px 30px rgba(0, 184, 148, 0.5)';
+                });
+                
+                buyButton.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.boxShadow = '';
+                });
+            }
+
+            // Animation des points
+            const pointsElements = document.querySelectorAll('.points-display');
+            pointsElements.forEach(el => {
+                el.style.transition = 'all 0.3s ease';
+                setInterval(() => {
+                    el.style.textShadow = '0 0 20px currentColor';
+                    setTimeout(() => {
+                        el.style.textShadow = '';
+                    }, 500);
+                }, 3000);
+            });
+        });
+    </script>
+{% endblock %}

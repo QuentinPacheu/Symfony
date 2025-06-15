@@ -1,0 +1,372 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tous les produits{% endblock %}
+
+{% block body %}
+    <!-- Header avec navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="text-white">
+                <i class="fas fa-store me-2" style="color: var(--accent-color);"></i>
+                Catalogue des produits
+            </h1>
+            <p class="text-bright">
+                <a href="{{ path('app_home') }}" class="text-decoration-none" style="color: var(--accent-color);">
+                    <i class="fas fa-arrow-left me-1"></i>Retour à l'accueil
+                </a>
+            </p>
+        </div>
+        {% if app.user %}
+            <div class="stat-card" style="min-width: 200px;">
+                <div class="text-center">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-wallet me-1"></i>Votre solde
+                    </h6>
+                    <h4 class="points-display mb-0">{{ app.user.points }} 💰</h4>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Statistiques rapides -->
+    {% if products|length > 0 %}
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <h3 class="text-info">{{ products|length }}</h3>
+                    <p>Produits disponibles</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    {% if app.user %}
+                        <h3 class="points-display">{{ app.user.points }}</h3>
+                        <p>Vos points</p>
+                    {% else %}
+                        <h3 class="text-warning">-</h3>
+                        <p>Connectez-vous</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">💸</div>
+                    {% set min_price = null %}
+                    {% for product in products %}
+                        {% if min_price is null or product.price < min_price %}
+                            {% set min_price = product.price %}
+                        {% endif %}
+                    {% endfor %}
+                    <h3 class="text-success">{{ min_price }} 💰</h3>
+                    <p>Prix minimum</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    {% if app.user %}
+                        {% set affordable_count = 0 %}
+                        {% for product in products %}
+                            {% if app.user.points >= product.price %}
+                                {% set affordable_count = affordable_count + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3 class="text-primary">{{ affordable_count }}</h3>
+                        <p>Produits accessibles</p>
+                    {% else %}
+                        <h3 class="text-muted">?</h3>
+                        <p>Connectez-vous</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Catalogue des produits -->
+    <div class="row mt-4">
+        {% for product in products %}
+            <div class="col-md-4 mb-4">
+                <div class="product-card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <!-- En-tête produit -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-box me-2" style="color: var(--accent-color);"></i>
+                                {{ product.name }}
+                            </h5>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-tag me-1"></i>{{ product.category }}
+                            </span>
+                        </div>
+
+                        <!-- Description -->
+                        <p class="card-text text-bright flex-grow-1">
+                            {{ product.description|slice(0, 100) }}{% if product.description|length > 100 %}...{% endif %}
+                        </p>
+
+                        <!-- Prix et statut -->
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="product-price mb-0">{{ product.price }} 💰</h4>
+                                {% if app.user %}
+                                    {% if app.user.actif %}
+                                        {% if app.user.points >= product.price %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Accessible
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>{{ product.price - app.user.points }} points manquants
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-ban me-1"></i>Compte désactivé
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-sign-in-alt me-1"></i>Connexion requise
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Actions utilisateur -->
+                            <div class="d-grid gap-2">
+                                <a href="{{ path('app_product_show', {'id': product.id}) }}" class="btn btn-modern">
+                                    <i class="fas fa-eye me-2"></i>Voir détails
+                                </a>
+                                
+                                {% if app.user and app.user.actif and app.user.points >= product.price %}
+                                    <form method="post" action="{{ path('app_product_acheter', {'id': product.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('acheter' ~ product.id) }}">
+                                        <button type="submit" class="btn btn-success-modern w-100" 
+                                                onclick="return confirm('🛒 Achat rapide\n\nProduit : {{ product.name }}\nPrix : {{ product.price }} points\n\nConfirmer l\'achat ?')">
+                                            <i class="fas fa-shopping-cart me-2"></i>Achat rapide
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Informations supplémentaires -->
+                        {% if product.createBy or product.createdAt %}
+                            <div class="mt-3 pt-3 border-top border-secondary">
+                                <div class="row text-center">
+                                    {% if product.createBy %}
+                                        <div class="col-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user-plus me-1"></i>Par<br>
+                                                <span class="text-bright">{{ product.createBy.firstname }}</span>
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                    {% if product.createdAt %}
+                                        <div class="col-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>Ajouté le<br>
+                                                <span class="text-bright">{{ product.createdAt|date('d/m/Y') }}</span>
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="modern-card text-center py-5">
+                    <i class="fas fa-store-slash" style="font-size: 5rem; color: var(--accent-color); margin-bottom: 2rem;"></i>
+                    <h3 class="text-white mb-3">Aucun produit disponible pour le moment</h3>
+                    <p class="text-bright mb-4">
+                        Notre catalogue est actuellement vide. Revenez bientôt pour découvrir nos nouveaux produits !
+                    </p>
+                    
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{{ path('app_home') }}" class="btn btn-modern">
+                            <i class="fas fa-home me-2"></i>Retour à l'accueil
+                        </a>
+                        <a href="{{ path('app_login') }}" class="btn btn-accent">
+                            <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Informations et conseils -->
+    {% if products|length > 0 %}
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="alert alert-modern">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-shopping-cart me-2"></i>Comment acheter ?
+                    </h6>
+                    <p class="mb-0">
+                        <strong>1.</strong> Cliquez sur "Voir détails" pour découvrir le produit<br>
+                        <strong>2.</strong> Utilisez "Achat rapide" si vous avez assez de points<br>
+                        <strong>3.</strong> Confirmez votre achat et profitez de votre produit !
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="alert alert-modern alert-success-modern">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-gift me-2"></i>Catalogue
+                    </h6>
+                    <p class="mb-0">
+                        <strong>{{ products|length }}</strong> produit{{ products|length > 1 ? 's' : '' }} disponible{{ products|length > 1 ? 's' : '' }} dans notre boutique.
+                        {% if app.user %}
+                            {% if affordable_count is defined %}
+                                Vous pouvez vous offrir <strong>{{ affordable_count }}</strong> produit{{ affordable_count > 1 ? 's' : '' }} dès maintenant !
+                            {% endif %}
+                        {% else %}
+                            <strong>Connectez-vous</strong> pour découvrir quels produits vous pouvez acheter.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Message encourageant pour les utilisateurs -->
+    {% if app.user and products|length > 0 %}
+        {% if affordable_count is defined and affordable_count == 0 %}
+            <div class="alert alert-modern alert-warning-modern mt-4">
+                <h6 class="alert-heading">
+                    <i class="fas fa-coins me-2"></i>Gagnez plus de points !
+                </h6>
+                <p class="mb-0">
+                    Vous n'avez pas encore assez de points pour acheter ces produits ? Pas de souci ! 
+                    Participez aux activités de la plateforme pour gagner plus de points et revenez faire vos achats.
+                </p>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Actions rapides -->
+    <div class="modern-card mt-4">
+        <h5 class="text-white mb-4">
+            <i class="fas fa-bolt me-2"></i>Actions rapides
+        </h5>
+        
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <a href="{{ path('app_home') }}" class="btn btn-warning-modern w-100">
+                    <i class="fas fa-home me-2"></i>Accueil
+                </a>
+            </div>
+            {% if app.user %}
+                <div class="col-md-3 mb-2">
+                    <a href="{{ path('app_profile') }}" class="btn btn-accent w-100">
+                        <i class="fas fa-user me-2"></i>Mon profil
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="{{ path('app_profile_notifications') }}" class="btn btn-success-modern w-100">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="{{ path('app_logout') }}" class="btn btn-danger-modern w-100">
+                        <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                    </a>
+                </div>
+            {% else %}
+                <div class="col-md-3 mb-2">
+                    <a href="{{ path('app_login') }}" class="btn btn-accent w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="{{ path('app_register') }}" class="btn btn-success-modern w-100">
+                        <i class="fas fa-user-plus me-2"></i>Inscription
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="{{ path('app_home') }}" class="btn btn-modern w-100">
+                        <i class="fas fa-info-circle me-2"></i>En savoir plus
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Animation des cartes produits
+        document.addEventListener('DOMContentLoaded', function() {
+            const productCards = document.querySelectorAll('.product-card');
+            
+            productCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animation des boutons d'achat rapide
+            const quickBuyButtons = document.querySelectorAll('button[onclick*="Achat rapide"]');
+            quickBuyButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.05)';
+                    this.style.boxShadow = '0 10px 25px rgba(0, 184, 148, 0.4)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.boxShadow = '';
+                });
+            });
+
+            // Filtre visuel pour les produits non accessibles
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const warningBadge = card.querySelector('.badge.bg-warning');
+                const dangerBadge = card.querySelector('.badge.bg-danger');
+                const infoBadge = card.querySelector('.badge.bg-info');
+                
+                if (warningBadge || dangerBadge || infoBadge) {
+                    card.style.opacity = '0.8';
+                    card.addEventListener('mouseenter', function() {
+                        this.style.opacity = '1';
+                        this.style.transform = 'translateY(-5px)';
+                    });
+                    card.addEventListener('mouseleave', function() {
+                        this.style.opacity = '0.8';
+                        this.style.transform = 'translateY(0)';
+                    });
+                }
+            });
+
+            // Animation des points
+            const pointsElements = document.querySelectorAll('.points-display');
+            pointsElements.forEach(el => {
+                const text = el.textContent;
+                const number = parseInt(text.replace(/[^\d]/g, ''));
+                if (number > 0) {
+                    let current = 0;
+                    const increment = number / 30;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= number) {
+                            current = number;
+                            clearInterval(timer);
+                        }
+                        el.textContent = Math.floor(current).toLocaleString() + ' 💰';
+                    }, 50);
+                }
+            });
+        });
+    </script>
+{% endblock %}

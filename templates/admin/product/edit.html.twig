@@ -1,0 +1,252 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ product.name }}{% endblock %}
+
+{% block body %}
+    <!-- Header avec navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="text-white">
+                <i class="fas fa-edit me-2" style="color: var(--accent-color);"></i>
+                Modifier le produit
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('app_home') }}" class="text-decoration-none" style="color: var(--accent-color);">
+                            <i class="fas fa-home me-1"></i>Accueil
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('app_admin_product_index') }}" class="text-decoration-none" style="color: var(--accent-color);">
+                            <i class="fas fa-box me-1"></i>Produits
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active text-light-custom">{{ product.name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_product_show', {'id': product.id}) }}" class="btn btn-success-modern">
+                <i class="fas fa-eye me-2"></i>Voir le produit
+            </a>
+            <a href="{{ path('app_admin_product_index') }}" class="btn btn-warning-modern">
+                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulaire de modification -->
+        <div class="col-lg-8">
+            <div class="modern-card">
+                <h5 class="text-white mb-4">
+                    <i class="fas fa-edit me-2"></i>Modifier les informations
+                </h5>
+
+                {{ form_start(form) }}
+                
+                <div class="mb-4">
+                    {{ form_label(form.name, null, {'label_attr': {'class': 'form-label text-light-custom fw-bold'}}) }}
+                    {{ form_widget(form.name, {'attr': {'class': 'form-control-modern'}}) }}
+                    {% if form_errors(form.name) %}
+                        <div class="text-danger mt-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            {{ form_errors(form.name) }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form_label(form.price, null, {'label_attr': {'class': 'form-label text-light-custom fw-bold'}}) }}
+                    <div class="input-group">
+                        {{ form_widget(form.price, {'attr': {'class': 'form-control-modern'}}) }}
+                        <span class="input-group-text bg-transparent text-light-custom border-0">
+                            <i class="fas fa-coins me-1"></i>💰 Points
+                        </span>
+                    </div>
+                    {% if form_errors(form.price) %}
+                        <div class="text-danger mt-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            {{ form_errors(form.price) }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form_label(form.category, null, {'label_attr': {'class': 'form-label text-light-custom fw-bold'}}) }}
+                    {{ form_widget(form.category, {'attr': {'class': 'form-select-modern'}}) }}
+                    {% if form_errors(form.category) %}
+                        <div class="text-danger mt-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            {{ form_errors(form.category) }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form_label(form.description, null, {'label_attr': {'class': 'form-label text-light-custom fw-bold'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control-modern', 'rows': 6}}) }}
+                    {% if form_errors(form.description) %}
+                        <div class="text-danger mt-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            {{ form_errors(form.description) }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-3 justify-content-end">
+                    <a href="{{ path('app_admin_product_index') }}" class="btn btn-danger-modern">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </a>
+                    <button type="submit" class="btn btn-modern">
+                        <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                    </button>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+        <!-- Informations et historique -->
+        <div class="col-lg-4">
+            <!-- Informations du produit -->
+            <div class="modern-card">
+                <h5 class="text-white mb-4">
+                    <i class="fas fa-info-circle me-2"></i>Informations
+                </h5>
+                
+                <div class="mb-3">
+                    <h6 class="text-accent">
+                        <i class="fas fa-user me-2"></i>Créé par
+                    </h6>
+                    <p class="text-light-custom">
+                        {% if product.createBy %}
+                            <i class="fas fa-user-circle me-2"></i>
+                            {{ product.createBy.firstname }} {{ product.createBy.name }}
+                        {% else %}
+                            <i class="fas fa-question-circle me-2"></i>
+                            Utilisateur inconnu
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-accent">
+                        <i class="fas fa-calendar-plus me-2"></i>Date de création
+                    </h6>
+                    <p class="text-light-custom">
+                        <i class="fas fa-clock me-2"></i>
+                        {{ product.createdAt ? product.createdAt|date('d/m/Y H:i:s') : 'Non défini' }}
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="text-accent">
+                        <i class="fas fa-calendar-edit me-2"></i>Dernière modification
+                    </h6>
+                    <p class="text-light-custom">
+                        <i class="fas fa-history me-2"></i>
+                        {{ product.updatedAt ? product.updatedAt|date('d/m/Y H:i:s') : 'Jamais modifié' }}
+                    </p>
+                </div>
+
+                <div class="alert alert-modern">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-shield-alt me-2"></i>Historique
+                    </h6>
+                    <p class="mb-0">
+                        Toutes les modifications sont automatiquement horodatées.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Aperçu actuel -->
+            <div class="modern-card">
+                <h5 class="text-white mb-4">
+                    <i class="fas fa-eye me-2"></i>Aperçu actuel
+                </h5>
+                <div class="product-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-box me-2" style="color: var(--accent-color);"></i>
+                            {{ product.name }}
+                        </h5>
+                        <p class="card-text">
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-tag me-1"></i>{{ product.category }}
+                            </span>
+                        </p>
+                        <p class="card-text">
+                            {{ product.description|slice(0, 100) }}{% if product.description|length > 100 %}...{% endif %}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="product-price mb-0">{{ product.price }} 💰</h4>
+                            <a href="{{ path('app_product_show', {'id': product.id}) }}" class="btn btn-modern btn-sm">
+                                <i class="fas fa-eye me-1"></i>Voir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions supplémentaires -->
+            <div class="modern-card">
+                <h5 class="text-white mb-4">
+                    <i class="fas fa-cogs me-2"></i>Actions
+                </h5>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ path('app_product_show', {'id': product.id}) }}" class="btn btn-success-modern">
+                        <i class="fas fa-eye me-2"></i>Voir sur le site
+                    </a>
+                    
+                    <form method="post" action="{{ path('app_admin_product_delete', {'id': product.id}) }}" 
+                          onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce produit ?\n\nCette action est irréversible !');" 
+                          class="d-grid">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ product.id) }}">
+                        <button type="submit" class="btn btn-danger-modern">
+                            <i class="fas fa-trash me-2"></i>Supprimer le produit
+                        </button>
+                    </form>
+                </div>
+
+                <div class="alert alert-modern alert-warning-modern mt-3">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Attention
+                    </h6>
+                    <p class="mb-0">
+                        La suppression d'un produit est définitive et ne peut pas être annulée.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Animation de confirmation pour la suppression
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteForm = document.querySelector('form[action*="delete"]');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Animation de la card de danger
+                    const dangerCard = this.closest('.modern-card');
+                    dangerCard.style.animation = 'pulse 0.5s ease-in-out';
+                    
+                    setTimeout(() => {
+                        if (confirm('⚠️ CONFIRMATION FINALE\n\nÊtes-vous VRAIMENT sûr de vouloir supprimer "{{ product.name }}" ?\n\nCette action supprimera définitivement le produit et ne pourra pas être annulée.')) {
+                            this.submit();
+                        } else {
+                            dangerCard.style.animation = '';
+                        }
+                    }, 100);
+                });
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - Boutique Points{% endblock %}
+
+{% block body %}
+    {% if app.user %}
+        <!-- Jumbotron moderne -->
+        <div class="jumbotron-modern">
+            <div class="content">
+                <h1 class="display-4 mb-4">Bienvenue sur la Boutique Points ! 🛍️</h1>
+                <p class="lead mb-4">Échangez vos points contre des produits exclusifs</p>
+                <p class="h4 mb-4">Bonjour <strong>{{ app.user.firstname }} {{ app.user.name }}</strong> !</p>
+                <p class="h4 mb-4">Votre solde : <span class="points-display">{{ app.user.points }} 💰</span></p>
+                <div class="mt-4">
+                    <a class="btn btn-modern me-3" href="{{ path('app_product_index') }}">
+                        <i class="fas fa-shopping-cart me-2"></i>Voir les produits
+                    </a>
+                    <a class="btn btn-accent" href="{{ path('app_profile') }}">
+                        <i class="fas fa-user me-2"></i>Mon Profil
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats rapides -->
+        <div class="row mb-5">
+            <div class="col-md-3 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <h3 class="points-display">{{ app.user.points }}</h3>
+                    <p>Points disponibles</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">🔔</div>
+                    <h3 class="text-info">{{ app.user.notifications|length }}</h3>
+                    <a href="{{ path('app_profile_notifications') }}" class="btn btn-sm btn-accent">
+                        Voir les notifications
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">👤</div>
+                    {% if app.user.actif %}
+                        <h3 class="text-success">✓</h3>
+                        <p>Compte actif</p>
+                    {% else %}
+                        <h3 class="text-warning">⚠️</h3>
+                        <p>Compte désactivé</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">⚙️</div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_profile') }}" class="btn btn-success-modern btn-sm">Mon Profil</a>
+                        <a href="{{ path('app_logout') }}" class="btn btn-warning-modern btn-sm">Déconnexion</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Espace Personnel -->
+        <div class="nav-section">
+            <h3><i class="fas fa-user-circle me-2"></i>Mon Espace Personnel</h3>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{{ path('app_profile') }}" class="nav-card">
+                        <div class="nav-icon"><i class="fas fa-user-cog"></i></div>
+                        <div class="nav-title">Mon Profil</div>
+                        <div class="nav-description">Gérez vos informations personnelles, points et paramètres</div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{{ path('app_profile_notifications') }}" class="nav-card">
+                        <div class="nav-icon"><i class="fas fa-bell"></i></div>
+                        <div class="nav-title">Mes Notifications ({{ app.user.notifications|length }})</div>
+                        <div class="nav-description">Consultez toutes vos notifications et alertes importantes</div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{{ path('app_product_index') }}" class="nav-card">
+                        <div class="nav-icon"><i class="fas fa-shopping-cart"></i></div>
+                        <div class="nav-title">Boutique</div>
+                        <div class="nav-description">Parcourir et acheter des produits avec vos points</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Administration (si admin) -->
+        {% if is_granted('ROLE_ADMIN') %}
+            <div class="nav-section" style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(254, 245, 231, 0.1) 100%); border: 1px solid rgba(255, 193, 7, 0.3);">
+                <h3 style="color: #ffc107; border-bottom-color: #ffc107;"><i class="fas fa-shield-alt me-2"></i>Administration</h3>
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="{{ path('app_admin_users') }}" class="nav-card">
+                            <div class="nav-icon"><i class="fas fa-users"></i></div>
+                            <div class="nav-title">Gestion Utilisateurs</div>
+                            <div class="nav-description">Administrer les comptes, activation/désactivation</div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="{{ path('app_admin_product_index') }}" class="nav-card">
+                            <div class="nav-icon"><i class="fas fa-box"></i></div>
+                            <div class="nav-title">Gestion Produits</div>
+                            <div class="nav-description">Créer, modifier et supprimer les produits</div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <a href="{{ path('app_admin_product_new') }}" class="nav-card">
+                            <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
+                            <div class="nav-title">Nouveau Produit</div>
+                            <div class="nav-description">Ajouter un nouveau produit au catalogue</div>
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="nav-card" onclick="addPointsToUsers()">
+                            <div class="nav-icon"><i class="fas fa-coins"></i></div>
+                            <div class="nav-title">Ajouter Points</div>
+                            <div class="nav-description">Ajouter 1000 points à tous les utilisateurs actifs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Section pour utilisateurs non connectés -->
+        <div class="jumbotron-modern">
+            <div class="content">
+                <h1 class="display-4 mb-4">Bienvenue sur la Boutique Points ! 🛍️</h1>
+                <p class="lead mb-4">Échangez vos points contre des produits exclusifs</p>
+                <p class="mb-4">Connectez-vous pour commencer vos achats</p>
+                <div class="mt-4">
+                    <a class="btn btn-modern me-3" href="{{ path('app_login') }}">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                    </a>
+                    <a class="btn btn-accent" href="{{ path('app_register') }}">
+                        <i class="fas fa-user-plus me-2"></i>S'inscrire
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <h3><i class="fas fa-sign-in-alt me-2"></i>Authentification</h3>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <a href="{{ path('app_login') }}" class="nav-card">
+                        <div class="nav-icon"><i class="fas fa-sign-in-alt"></i></div>
+                        <div class="nav-title">Connexion</div>
+                        <div class="nav-description">Connectez-vous à votre compte existant</div>
+                    </a>
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <a href="{{ path('app_register') }}" class="nav-card">
+                        <div class="nav-icon"><i class="fas fa-user-plus"></i></div>
+                        <div class="nav-title">Inscription</div>
+                        <div class="nav-description">Créer un nouveau compte utilisateur</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function addPointsToUsers() {
+            if (confirm('Êtes-vous sûr de vouloir ajouter 1000 points à tous les utilisateurs actifs ?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ path('app_admin_add_points') }}';
+                
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '_token';
+                tokenInput.value = '{{ csrf_token('add_points') }}';
+                
+                form.appendChild(tokenInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+{% endblock %}
